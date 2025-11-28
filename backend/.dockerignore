@@ -1,6 +1,11 @@
-.env
 node_modules
 dist
 coverage
+tests
+.env
+.git
+.gitignore
 *.log
 .DS_Store
+README.md
+

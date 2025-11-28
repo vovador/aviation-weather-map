@@ -1,0 +1,6 @@
+{
+  "typescript.tsserver.projectRootoverrides": {
+    "backend/tests": ["backend/tests/tsconfig.json"]
+  }
+}
+

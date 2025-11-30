@@ -59,8 +59,10 @@ export class FilterService {
     const range = feature.properties.altitudeRange;
     if (!range) return true; // Or false if your business logic prefers exclusion
 
-    const lowerFt = (range.min ?? 0) * 100;
-    const upperFt = (range.max ?? Infinity) * 100;
+    // Altitude values are already in feet (not flight levels)
+    // No conversion needed - use values directly
+    const lowerFt = range.min ?? 0;
+    const upperFt = range.max ?? Infinity;
 
     if (minAlt !== undefined && upperFt < minAlt) return false;
     if (maxAlt !== undefined && lowerFt > maxAlt) return false;

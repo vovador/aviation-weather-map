@@ -26,11 +26,9 @@ export class AWCFacade {
     rawQuery: Record<string, unknown>
   ): Promise<GeoJSONFeatureCollection> {
     const filters = FilterMapper.fromQuery(rawQuery) as FilterOptions;
-    logger.debug("SIGMET filters parsed", {
-      parsedFilters: filters,
-    });
     const allSigmet = await this.weatherCacheService.getSigmet();
-    return this.filterService.applyFilters(allSigmet, filters);
+    const filteredSigmet = this.filterService.applyFilters(allSigmet, filters);
+    return filteredSigmet;
   }
 
   /**
@@ -41,9 +39,6 @@ export class AWCFacade {
     rawQuery: Record<string, unknown>
   ): Promise<GeoJSONFeatureCollection> {
     const filters = FilterMapper.fromQuery(rawQuery) as FilterOptions;
-    logger.debug("AIRSIGMET filters parsed", {
-      parsedFilters: filters,
-    });
     const allAirsigmet = await this.weatherCacheService.getAirsigmet();
     return this.filterService.applyFilters(allAirsigmet, filters);
   }

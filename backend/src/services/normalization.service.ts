@@ -127,12 +127,13 @@ export class NormalizationService {
       validityEnd: this.unixTimestampToISO(sigmet.validTimeTo),
     };
 
-    // Altitude (base can be null/undefined)
+    // Altitude: AWC API returns values in feet (e.g., 24000 = 24,000 ft, not FL240)
+    // base and top are already in feet, not flight levels
     if (sigmet.base !== undefined || sigmet.top !== undefined) {
       properties.altitudeRange = {
         min: sigmet.base ?? undefined,
         max: sigmet.top,
-        unit: "FL",
+        unit: "FT",
       };
     }
 
@@ -176,14 +177,15 @@ export class NormalizationService {
       validityEnd: this.unixTimestampToISO(airsigmet.validTimeTo),
     };
 
-    // Altitude: use Low1/Low2 for min, Hi1/Hi2 for max (same logic as before)
+    // Altitude: AWC API returns values in feet (e.g., 24000 = 24,000 ft, not FL240)
+    // altitudeLow1/Low2 and altitudeHi1/Hi2 are already in feet, not flight levels
     const minAltitude = airsigmet.altitudeLow1 ?? airsigmet.altitudeLow2;
     const maxAltitude = airsigmet.altitudeHi1 ?? airsigmet.altitudeHi2;
     if (minAltitude !== undefined || maxAltitude !== undefined) {
       properties.altitudeRange = {
         min: minAltitude ?? undefined,
         max: maxAltitude,
-        unit: "FL",
+        unit: "FT",
       };
     }
 

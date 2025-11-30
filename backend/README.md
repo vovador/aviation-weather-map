@@ -33,10 +33,21 @@ yarn dev
 ## API Endpoints
 
 - `POST /auth/guest` - Get JWT token
-- `GET /isigmet` - Fetch SIGMET data (requires auth)
-- `GET /airsigmet` - Fetch AIRSIGMET data (requires auth)
+- `GET /sigmet` - Fetch filtered SIGMET data (requires auth)
+  - Query parameters: `minAlt`, `maxAlt`, `from`, `to`
+- `GET /airsigmet` - Fetch filtered AIRSIGMET data (requires auth)
+  - Query parameters: `minAlt`, `maxAlt`, `from`, `to`
 - `GET /health` - Health check
 - `GET /docs` - Swagger documentation
+
+### Query Parameters
+
+- `minAlt` (number, optional): Minimum altitude in feet
+- `maxAlt` (number, optional): Maximum altitude in feet
+- `from` (string, optional): Start of time range filter (ISO datetime, e.g., "2024-01-01T00:00:00Z")
+- `to` (string, optional): End of time range filter (ISO datetime, e.g., "2024-01-01T05:00:00Z")
+
+All filtering is performed in the backend. The AWC API is called without any filter parameters.
 
 ## Environment Variables
 

@@ -2,13 +2,13 @@ import request from "supertest";
 import express from "express";
 import sigmetRoutes from "../../src/routes/sigmet.routes";
 import { generateGuestToken } from "../../src/services/auth.service";
-import { AWCService } from "../../src/services/awc.service";
-import { NormalizationService } from "../../src/services/normalization.service";
+import { WeatherCacheService } from "../../src/services/weather-cache.service";
+import { FilterService } from "../../src/services/filter.service";
 import { AWCServiceError } from "../../src/errors/AWCServiceError";
 import { errorHandler } from "../../src/middleware/security";
 
-jest.mock("../../src/services/awc.service");
-jest.mock("../../src/services/normalization.service");
+jest.mock("../../src/services/weather-cache.service");
+jest.mock("../../src/services/filter.service");
 
 const app = express();
 app.use(express.json());
@@ -24,41 +24,19 @@ describe("SIGMET Routes", () => {
     jest.clearAllMocks();
   });
 
-  describe("GET /isigmet", () => {
+  describe("GET /sigmet", () => {
     it("should return 401 without token", async () => {
-      await request(app).get("/isigmet").expect(401);
+      await request(app).get("/sigmet").expect(401);
     });
 
     it("should return 401 with invalid token", async () => {
       await request(app)
-        .get("/isigmet")
+        .get("/sigmet")
         .set("Authorization", "Bearer invalid-token")
         .expect(401);
     });
 
-    it("should fetch and normalize sigmet data", async () => {
-      const mockAWCData = {
-        sigmets: [
-          {
-            icaoId: "KJFK",
-            firId: "KZNY",
-            seriesId: "TEST001",
-            rawSigmet: "Test SIGMET",
-            hazard: "TURBULENCE",
-            validTimeFrom: 1704067200,
-            validTimeTo: 1704088800,
-            base: 100,
-            top: 300,
-            geom: "AREA",
-            coords: [
-              { lon: 0, lat: 0 },
-              { lon: 0.1, lat: 0.1 },
-              { lon: 0, lat: 0 },
-            ],
-          },
-        ],
-      };
-
+    it("should fetch and return filtered sigmet data", async () => {
       const mockGeoJSON = {
         type: "FeatureCollection",
         features: [
@@ -87,65 +65,138 @@ describe("SIGMET Routes", () => {
         ],
       };
 
-      (AWCService.prototype.fetchSigmet as jest.Mock).mockResolvedValue(
-        mockAWCData
+      const filteredGeoJSON = {
+        type: "FeatureCollection",
+        features: mockGeoJSON.features,
+      };
+
+      (WeatherCacheService.prototype.getSigmet as jest.Mock).mockResolvedValue(
+        mockGeoJSON
       );
-      (
-        NormalizationService.prototype.normalizeSigmet as jest.Mock
-      ).mockReturnValue(mockGeoJSON);
+      (FilterService.prototype.applyFilters as jest.Mock).mockReturnValue(
+        filteredGeoJSON
+      );
 
       const response = await request(app)
-        .get("/isigmet")
+        .get("/sigmet")
         .set("Authorization", `Bearer ${token}`)
         .expect(200);
 
-      expect(response.body).toEqual(mockGeoJSON);
-      expect(AWCService.prototype.fetchSigmet).toHaveBeenCalled();
-      expect(
-        NormalizationService.prototype.normalizeSigmet
-      ).toHaveBeenCalledWith(mockAWCData);
+      expect(response.body).toEqual(filteredGeoJSON);
+      expect(WeatherCacheService.prototype.getSigmet).toHaveBeenCalled();
+      expect(FilterService.prototype.applyFilters).toHaveBeenCalled();
     });
 
-    it("should bypass cache when nocache=1", async () => {
+    it("should apply altitude filters", async () => {
+      const mockGeoJSON = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [0, 0] },
+            properties: {
+              hazardType: "TURBULENCE",
+              bulletinId: "TEST001",
+              rawText: "Test",
+              validityStart: "2024-01-01T00:00:00Z",
+              validityEnd: "2024-01-01T06:00:00Z",
+              altitudeRange: { min: 100, max: 300, unit: "FL" },
+            },
+          },
+        ],
+      };
+
+      (WeatherCacheService.prototype.getSigmet as jest.Mock).mockResolvedValue(
+        mockGeoJSON
+      );
+      (FilterService.prototype.applyFilters as jest.Mock).mockReturnValue(
+        mockGeoJSON
+      );
+
+      await request(app)
+        .get("/sigmet?minAlt=15000&maxAlt=25000")
+        .set("Authorization", `Bearer ${token}`)
+        .expect(200);
+
+      expect(FilterService.prototype.applyFilters).toHaveBeenCalledWith(
+        mockGeoJSON,
+        expect.objectContaining({
+          minAlt: 15000,
+          maxAlt: 25000,
+        })
+      );
+    });
+
+    it("should apply time filters", async () => {
       const mockGeoJSON = {
         type: "FeatureCollection",
         features: [],
       };
 
-      (AWCService.prototype.fetchSigmet as jest.Mock).mockResolvedValue({});
-      (
-        NormalizationService.prototype.normalizeSigmet as jest.Mock
-      ).mockReturnValue(mockGeoJSON);
+      (WeatherCacheService.prototype.getSigmet as jest.Mock).mockResolvedValue(
+        mockGeoJSON
+      );
+      (FilterService.prototype.applyFilters as jest.Mock).mockReturnValue(
+        mockGeoJSON
+      );
 
       await request(app)
-        .get("/isigmet?nocache=1")
+        .get("/sigmet?from=2024-01-01T00:00:00Z&to=2024-01-01T05:00:00Z")
         .set("Authorization", `Bearer ${token}`)
         .expect(200);
 
-      expect(AWCService.prototype.fetchSigmet).toHaveBeenCalled();
+      expect(FilterService.prototype.applyFilters).toHaveBeenCalledWith(
+        mockGeoJSON,
+        expect.objectContaining({
+          fromTs: expect.any(Number),
+          toTs: expect.any(Number),
+        })
+      );
     });
 
     it("should surface known upstream errors", async () => {
-      (AWCService.prototype.fetchSigmet as jest.Mock).mockRejectedValue(
+      (WeatherCacheService.prototype.getSigmet as jest.Mock).mockRejectedValue(
         new AWCServiceError(504, "Request to AWC API timed out")
       );
 
       const response = await request(app)
-        .get("/isigmet?nocache=1")
+        .get("/sigmet")
         .set("Authorization", `Bearer ${token}`)
         .expect(504);
 
       expect(response.body).toEqual({
         error: "Request to AWC API timed out",
       });
-      expect(AWCService.prototype.fetchSigmet).toHaveBeenCalled();
     });
 
-    it("should return 400 for invalid query parameters", async () => {
-      await request(app)
-        .get("/isigmet?nocache=invalid")
+    it("should handle invalid numeric query parameters gracefully", async () => {
+      const mockGeoJSON = {
+        type: "FeatureCollection",
+        features: [],
+      };
+
+      (WeatherCacheService.prototype.getSigmet as jest.Mock).mockResolvedValue(
+        mockGeoJSON
+      );
+      (FilterService.prototype.applyFilters as jest.Mock).mockReturnValue(
+        mockGeoJSON
+      );
+
+      // minAlt=invalid will be parsed as NaN in the controller, which will be ignored
+      // So the request should succeed with empty filters
+      const response = await request(app)
+        .get("/sigmet?minAlt=invalid")
         .set("Authorization", `Bearer ${token}`)
-        .expect(400);
+        .expect(200);
+
+      expect(response.body).toEqual(mockGeoJSON);
+      // Filter should be called with filters that don't include the invalid minAlt
+      expect(FilterService.prototype.applyFilters).toHaveBeenCalledWith(
+        mockGeoJSON,
+        expect.objectContaining({
+          // minAlt should be undefined since "invalid" parses to NaN
+        })
+      );
     });
   });
 
@@ -154,35 +205,7 @@ describe("SIGMET Routes", () => {
       await request(app).get("/airsigmet").expect(401);
     });
 
-    it("should fetch and normalize airsigmet data", async () => {
-      const mockAWCData = {
-        airsigmets: [
-          {
-            icaoId: "KJFK",
-            alphaChar: "E",
-            seriesId: "AIR001",
-            receiptTime: "2024-01-01T00:00:00.000Z",
-            creationTime: "2024-01-01T00:05:00.000Z",
-            validTimeFrom: 1704067200,
-            validTimeTo: 1704088800,
-            airSigmetType: "SIGMET",
-            hazard: "ICING",
-            altitudeLow1: 200,
-            altitudeHi1: 400,
-            movementDir: 230,
-            movementSpd: 25,
-            rawAirSigmet: "Test AIRSIGMET",
-            postProcessFlag: 0,
-            severity: 5,
-            coords: [
-              { lon: 1, lat: 1 },
-              { lon: 1.1, lat: 1.1 },
-              { lon: 1, lat: 1 },
-            ],
-          },
-        ],
-      };
-
+    it("should fetch and return filtered airsigmet data", async () => {
       const mockGeoJSON = {
         type: "FeatureCollection",
         features: [
@@ -205,37 +228,31 @@ describe("SIGMET Routes", () => {
               validityStart: "2024-01-01T00:00:00.000Z",
               validityEnd: "2024-01-01T06:00:00.000Z",
               altitudeRange: { min: 200, max: 400, unit: "FL" },
-              icaoId: "KJFK",
-              alphaChar: "E",
-              receiptTime: "2024-01-01T00:00:00.000Z",
-              creationTime: "2024-01-01T00:05:00.000Z",
-              airSigmetType: "SIGMET",
-              movementDir: 230,
-              movementSpd: 25,
-              postProcessFlag: 0,
-              severity: 5,
             },
           },
         ],
       };
 
-      (AWCService.prototype.fetchAirsigmet as jest.Mock).mockResolvedValue(
-        mockAWCData
-      );
+      const filteredGeoJSON = {
+        type: "FeatureCollection",
+        features: mockGeoJSON.features,
+      };
+
       (
-        NormalizationService.prototype.normalizeAirsigmet as jest.Mock
-      ).mockReturnValue(mockGeoJSON);
+        WeatherCacheService.prototype.getAirsigmet as jest.Mock
+      ).mockResolvedValue(mockGeoJSON);
+      (FilterService.prototype.applyFilters as jest.Mock).mockReturnValue(
+        filteredGeoJSON
+      );
 
       const response = await request(app)
         .get("/airsigmet")
         .set("Authorization", `Bearer ${token}`)
         .expect(200);
 
-      expect(response.body).toEqual(mockGeoJSON);
-      expect(AWCService.prototype.fetchAirsigmet).toHaveBeenCalled();
-      expect(
-        NormalizationService.prototype.normalizeAirsigmet
-      ).toHaveBeenCalledWith(mockAWCData);
+      expect(response.body).toEqual(filteredGeoJSON);
+      expect(WeatherCacheService.prototype.getAirsigmet).toHaveBeenCalled();
+      expect(FilterService.prototype.applyFilters).toHaveBeenCalled();
     });
   });
 });

@@ -8,7 +8,7 @@ const options: swaggerJsdoc.Options = {
       title: "AWC Proxy Backend API",
       version: "1.0.0",
       description:
-        "API for fetching and normalizing aviation weather data from AWC",
+        "API for fetching and normalizing aviation weather data from AWC with backend filtering",
     },
     servers: [
       {
@@ -25,7 +25,7 @@ const options: swaggerJsdoc.Options = {
         },
       },
       schemas: {
-        GeoJsonFeatureCollection: {
+        FeatureCollection: {
           type: "object",
           properties: {
             type: {
@@ -35,12 +35,13 @@ const options: swaggerJsdoc.Options = {
             features: {
               type: "array",
               items: {
-                $ref: "#/components/schemas/GeoJsonFeature",
+                $ref: "#/components/schemas/Feature",
               },
             },
           },
+          required: ["type", "features"],
         },
-        GeoJsonFeature: {
+        Feature: {
           type: "object",
           properties: {
             type: {
@@ -49,9 +50,11 @@ const options: swaggerJsdoc.Options = {
             },
             geometry: {
               type: "object",
+              description: "GeoJSON geometry object",
             },
             properties: {
               type: "object",
+              description: "Feature properties",
               properties: {
                 hazardType: {
                   type: "string",
@@ -64,12 +67,25 @@ const options: swaggerJsdoc.Options = {
                 },
                 validityStart: {
                   type: "string",
+                  format: "date-time",
                 },
                 validityEnd: {
                   type: "string",
+                  format: "date-time",
                 },
                 altitudeRange: {
                   type: "object",
+                  properties: {
+                    min: {
+                      type: "number",
+                    },
+                    max: {
+                      type: "number",
+                    },
+                    unit: {
+                      type: "string",
+                    },
+                  },
                 },
                 fir: {
                   type: "string",
@@ -77,6 +93,7 @@ const options: swaggerJsdoc.Options = {
               },
             },
           },
+          required: ["type", "geometry", "properties"],
         },
         TokenResponse: {
           type: "object",
@@ -103,62 +120,58 @@ const options: swaggerJsdoc.Options = {
         },
       },
       parameters: {
-        nocacheParam: {
-          name: "nocache",
+        MinAltParam: {
           in: "query",
-          schema: {
-            type: "string",
-            enum: ["0", "1"],
-          },
-          description: "Set to '1' to bypass cache",
-        },
-        startParam: {
-          name: "start",
-          in: "query",
-          schema: {
-            type: "string",
-          },
-          description: "Start time filter (ISO 8601)",
-        },
-        endParam: {
-          name: "end",
-          in: "query",
-          schema: {
-            type: "string",
-          },
-          description: "End time filter (ISO 8601)",
-        },
-        minAltParam: {
           name: "minAlt",
-          in: "query",
           schema: {
-            type: "string",
+            type: "number",
           },
-          description: "Minimum altitude filter",
+          description: "Minimum altitude in feet",
+          required: false,
+          example: 10000,
         },
-        maxAltParam: {
+        MaxAltParam: {
+          in: "query",
           name: "maxAlt",
-          in: "query",
           schema: {
-            type: "string",
+            type: "number",
           },
-          description: "Maximum altitude filter",
+          description: "Maximum altitude in feet",
+          required: false,
+          example: 30000,
         },
-        hazardParam: {
-          name: "hazard",
+        FromTimeParam: {
           in: "query",
+          name: "from",
           schema: {
             type: "string",
+            format: "date-time",
           },
-          description: "Hazard type filter",
+          description: "Start of time range filter (ISO datetime)",
+          required: false,
+          example: "2024-01-01T00:00:00Z",
         },
-        firParam: {
-          name: "fir",
+        ToTimeParam: {
           in: "query",
+          name: "to",
+          schema: {
+            type: "string",
+            format: "date-time",
+          },
+          description: "End of time range filter (ISO datetime)",
+          required: false,
+          example: "2024-01-01T05:00:00Z",
+        },
+        GeometryTypeParam: {
+          in: "query",
+          name: "geometryType",
           schema: {
             type: "string",
           },
-          description: "FIR filter",
+          description:
+            "Filter by GeoJSON geometry type (e.g., Polygon, Point, LineString)",
+          required: false,
+          example: "Polygon",
         },
       },
       responses: {
@@ -167,7 +180,7 @@ const options: swaggerJsdoc.Options = {
           content: {
             "application/json": {
               schema: {
-                $ref: "#/components/schemas/GeoJsonFeatureCollection",
+                $ref: "#/components/schemas/FeatureCollection",
               },
             },
           },

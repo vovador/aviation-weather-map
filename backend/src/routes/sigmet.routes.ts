@@ -8,40 +8,42 @@ import {
 } from "../validators/query.validator";
 import { AWCService } from "../services/awc.service";
 import { NormalizationService } from "../services/normalization.service";
-import { TTLCache } from "../utils/cache";
+import { WeatherCacheService } from "../services/weather-cache.service";
+import { FilterService } from "../services/filter.service";
 import { ApiClient } from "../core/ApiClient";
 import { env } from "../config/env";
 import { AWCFacade } from "../services/awc.facade";
 import { AWCController } from "../controllers/awc.controller";
-import { GeoJSONFeatureCollection } from "../types/geojson";
 
 const router = Router();
+
+// Initialize services
 const apiClient = new ApiClient(env.awcBaseUrl, { format: "json" });
 const awcService = new AWCService(apiClient);
 const normalizationService = new NormalizationService();
-
-// 1-hour TTL cache (3600 seconds)
-const cache = new TTLCache<string, GeoJSONFeatureCollection>(3600);
-const awcFacade = new AWCFacade(awcService, normalizationService, cache);
+const weatherCacheService = new WeatherCacheService(
+  awcService,
+  normalizationService
+);
+const filterService = new FilterService();
+const awcFacade = new AWCFacade(weatherCacheService, filterService);
 const awcController = new AWCController(awcFacade);
 
 /**
  * @swagger
- * /isigmet:
+ * /sigmet:
  *   get:
- *     summary: Get SIGMET data
- *     description: Fetches and normalizes SIGMET data from AWC API into GeoJSON format
+ *     summary: Get filtered SIGMET data
+ *     description: Fetches SIGMET data from AWC API, normalizes to GeoJSON, and applies backend filtering by altitude, time range, and geometry type
  *     tags: [SIGMET]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - $ref: '#/components/parameters/nocacheParam'
- *       - $ref: '#/components/parameters/startParam'
- *       - $ref: '#/components/parameters/endParam'
- *       - $ref: '#/components/parameters/minAltParam'
- *       - $ref: '#/components/parameters/maxAltParam'
- *       - $ref: '#/components/parameters/hazardParam'
- *       - $ref: '#/components/parameters/firParam'
+ *       - $ref: '#/components/parameters/MinAltParam'
+ *       - $ref: '#/components/parameters/MaxAltParam'
+ *       - $ref: '#/components/parameters/FromTimeParam'
+ *       - $ref: '#/components/parameters/ToTimeParam'
+ *       - $ref: '#/components/parameters/GeometryTypeParam'
  *     responses:
  *       200:
  *         $ref: '#/components/responses/GeoJsonResponse'
@@ -53,7 +55,7 @@ const awcController = new AWCController(awcFacade);
  *         $ref: '#/components/responses/InternalServerErrorResponse'
  */
 router.get(
-  "/isigmet",
+  "/sigmet",
   verifyJWT,
   validateQuery(sigmetQuerySchema),
   asyncRoute((req, res, _next) =>
@@ -65,19 +67,17 @@ router.get(
  * @swagger
  * /airsigmet:
  *   get:
- *     summary: Get AIRSIGMET data
- *     description: Fetches and normalizes AIRSIGMET data from AWC API into GeoJSON format
+ *     summary: Get filtered AIRSIGMET data
+ *     description: Fetches AIRSIGMET data from AWC API, normalizes to GeoJSON, and applies backend filtering by altitude, time range, and geometry type
  *     tags: [AIRSIGMET]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - $ref: '#/components/parameters/nocacheParam'
- *       - $ref: '#/components/parameters/startParam'
- *       - $ref: '#/components/parameters/endParam'
- *       - $ref: '#/components/parameters/minAltParam'
- *       - $ref: '#/components/parameters/maxAltParam'
- *       - $ref: '#/components/parameters/hazardParam'
- *       - $ref: '#/components/parameters/firParam'
+ *       - $ref: '#/components/parameters/MinAltParam'
+ *       - $ref: '#/components/parameters/MaxAltParam'
+ *       - $ref: '#/components/parameters/FromTimeParam'
+ *       - $ref: '#/components/parameters/ToTimeParam'
+ *       - $ref: '#/components/parameters/GeometryTypeParam'
  *     responses:
  *       200:
  *         $ref: '#/components/responses/GeoJsonResponse'

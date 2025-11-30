@@ -28,7 +28,7 @@ describe("AWC Service", () => {
         ],
       };
 
-      mockApiClient.get.mockResolvedValue(mockData);
+      mockApiClient.get.mockResolvedValue({ data: mockData, status: 200 });
 
       const params = { region: "US", type: "SIGMET" };
       const result = await service.fetchSigmet(params);
@@ -150,7 +150,7 @@ describe("AWC Service", () => {
         ],
       };
 
-      mockApiClient.get.mockResolvedValue(mockData);
+      mockApiClient.get.mockResolvedValue({ data: mockData, status: 200 });
 
       const params = { region: "US" };
       const result = await service.fetchAirsigmet(params);

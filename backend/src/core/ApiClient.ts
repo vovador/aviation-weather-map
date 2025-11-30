@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import { logger } from "../utils/logger";
 
 type ApiClientErrorCode =
   | "TIMEOUT"
@@ -42,14 +43,17 @@ export class ApiClient {
    * Services should focus on domain logic — this takes care of
    * HTTP concerns and consistent error mapping.
    */
-  async get<T>(path: string, params?: Record<string, unknown>): Promise<T> {
+  async get<T>(
+    path: string,
+    params?: Record<string, unknown>
+  ): Promise<{ data: T; status: number | string }> {
     try {
       const response = await this.client.get<T>(path, {
         params,
         validateStatus: (status) => status < 500,
       });
 
-      if (response.status !== 200) {
+      if (response.status < 200 || response.status >= 300) {
         throw new ApiClientError(
           "NON_200",
           `Remote API responded with ${response.status}`,
@@ -57,14 +61,28 @@ export class ApiClient {
         );
       }
 
+      // Handle 204 No Content - return empty object for normalization service
+      if (response.status === 204) {
+        logger.debug("API returned 204 No Content", {
+          path,
+          status: response.status,
+          params,
+        });
+        return { data: {} as T, status: response.status };
+      }
+
       if (!response.data || typeof response.data !== "object") {
+        logger.error(`Remote API returned an invalid response structure}`, {
+          responseStatus: response.status,
+          responseData: response.data,
+        });
         throw new ApiClientError(
           "INVALID",
           "Remote API returned an invalid response structure"
         );
       }
 
-      return response.data;
+      return { data: response.data, status: response.status };
     } catch (err) {
       throw this.mapAxiosError(err);
     }

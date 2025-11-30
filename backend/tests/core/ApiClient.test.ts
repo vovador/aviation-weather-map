@@ -69,7 +69,24 @@ describe("ApiClient", () => {
 
       const result = await client.get("/endpoint", { param: "value" });
 
-      expect(result).toEqual(mockData);
+      expect(result).toEqual({ data: mockData, status: 200 });
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/endpoint", {
+        params: { param: "value" },
+        validateStatus: expect.any(Function),
+      });
+    });
+
+    it("should return empty object on 204 No Content response", async () => {
+      const client = new ApiClient("https://api.example.com");
+
+      mockAxiosInstance.get.mockResolvedValue({
+        status: 204,
+        data: "",
+      });
+
+      const result = await client.get("/endpoint", { param: "value" });
+
+      expect(result).toEqual({ data: {}, status: 204 });
       expect(mockAxiosInstance.get).toHaveBeenCalledWith("/endpoint", {
         params: { param: "value" },
         validateStatus: expect.any(Function),

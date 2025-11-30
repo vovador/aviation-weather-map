@@ -1,28 +1,25 @@
 import { z } from "zod";
 
-export const sigmetQuerySchema = z
-  .object({
-    nocache: z.enum(["0", "1"]).optional(),
-    start: z.string().optional(),
-    end: z.string().optional(),
-    minAlt: z.string().optional(),
-    maxAlt: z.string().optional(),
-    hazard: z.string().optional(),
-    fir: z.string().optional(),
-  })
-  .passthrough();
+/**
+ * Query parameter schemas for weather endpoints.
+ * Only accepts: minAlt, maxAlt, from, to, geometryType
+ * All old AWC passthrough params (level, hazard, date, format, etc.) are removed.
+ */
+export const sigmetQuerySchema = z.object({
+  minAlt: z.string().optional(),
+  maxAlt: z.string().optional(),
+  from: z.string().optional(), // ISO datetime
+  to: z.string().optional(), // ISO datetime
+  geometryType: z.string().optional(), // Polygon, Point, LineString, etc.
+});
 
-export const airsigmetQuerySchema = z
-  .object({
-    nocache: z.enum(["0", "1"]).optional(),
-    start: z.string().optional(),
-    end: z.string().optional(),
-    minAlt: z.string().optional(),
-    maxAlt: z.string().optional(),
-    hazard: z.string().optional(),
-    fir: z.string().optional(),
-  })
-  .passthrough();
+export const airsigmetQuerySchema = z.object({
+  minAlt: z.string().optional(),
+  maxAlt: z.string().optional(),
+  from: z.string().optional(), // ISO datetime
+  to: z.string().optional(), // ISO datetime
+  geometryType: z.string().optional(), // Polygon, Point, LineString, etc.
+});
 
 export type SigmetQueryParams = z.infer<typeof sigmetQuerySchema>;
 export type AirsigmetQueryParams = z.infer<typeof airsigmetQuerySchema>;

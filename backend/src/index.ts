@@ -4,7 +4,6 @@ import {
   apiSecurityHeaders,
   swaggerSecurityHeaders,
   corsMiddleware,
-  rateLimiter,
   errorHandler,
 } from "./middleware/security";
 import authRoutes from "./routes/auth.routes";
@@ -18,7 +17,6 @@ const app = express();
 // Only minimal protections are needed for a pure API.
 app.use(apiSecurityHeaders);
 app.use(corsMiddleware);
-app.use(rateLimiter);
 
 // Body parsing
 app.use(express.json());

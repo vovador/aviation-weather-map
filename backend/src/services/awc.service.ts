@@ -2,6 +2,8 @@ import { env } from "../config/env";
 import { AWCSigmetResponse, AWCAirsigmetResponse } from "../types/awc";
 import { ApiClient, ApiClientError } from "../core/ApiClient";
 import { AWCServiceError } from "../errors/AWCServiceError";
+import { logger } from "../utils/logger";
+import { createApiResponseSummary } from "../utils/apiResponseSummary";
 
 export class AWCService {
   // Accepting the transport layer as a dependency makes the service trivial to mock in tests.
@@ -27,7 +29,18 @@ export class AWCService {
     params: Record<string, string>
   ): Promise<T> {
     try {
-      return await this.apiClient.get<T>(url, params);
+      const { data, status } = await this.apiClient.get<T>(url, params);
+
+      // Log successful data fetch with summary
+      const dataSummary = createApiResponseSummary(data);
+      logger.debug("Successfully fetched data from API", {
+        path: url,
+        status: status,
+        params,
+        dataType: typeof data,
+        dataSummary,
+      });
+      return data;
     } catch (error) {
       throw this.mapError(error);
     }

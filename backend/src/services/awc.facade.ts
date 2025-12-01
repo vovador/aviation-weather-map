@@ -1,4 +1,4 @@
-import { WeatherCacheService } from "./weather-cache.service";
+import { IWeatherCacheService } from "./weather-cache";
 import { FilterService, FilterOptions } from "./filter.service";
 import { GeoJSONFeatureCollection } from "../types/geojson";
 import { FilterMapper } from "../mappers/filter.mapper";
@@ -14,7 +14,7 @@ import { logger } from "../utils/logger";
  */
 export class AWCFacade {
   constructor(
-    private readonly weatherCacheService: WeatherCacheService,
+    private readonly weatherCacheService: IWeatherCacheService,
     private readonly filterService: FilterService
   ) {}
 
@@ -39,6 +39,7 @@ export class AWCFacade {
     rawQuery: Record<string, unknown>
   ): Promise<GeoJSONFeatureCollection> {
     const filters = FilterMapper.fromQuery(rawQuery) as FilterOptions;
+    logger.debug("Filters", { filters });
     const allAirsigmet = await this.weatherCacheService.getAirsigmet();
     return this.filterService.applyFilters(allAirsigmet, filters);
   }

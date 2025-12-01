@@ -8,6 +8,7 @@ interface EnvConfig {
   frontendOrigin: string;
   awcBaseUrl: string;
   nodeEnv: string;
+  useMockData: boolean;
 }
 
 function validateEnv(): EnvConfig {
@@ -26,6 +27,7 @@ function validateEnv(): EnvConfig {
     frontendOrigin: process.env.FRONTEND_ORIGIN!,
     awcBaseUrl: process.env.AWC_BASE_URL!,
     nodeEnv: process.env.NODE_ENV || "development",
+    useMockData: process.env.USE_MOCK_DATA === "true",
   };
 }
 

@@ -1,30 +1,20 @@
 import { Router } from "express";
-import { verifyJWT, AuthRequest } from "../middleware/auth";
-import { validateQuery } from "../middleware/validation";
-import { asyncRoute } from "../middleware/asyncHandler";
-import {
-  sigmetQuerySchema,
-  airsigmetQuerySchema,
-} from "../validators/query.validator";
-import { AWCService } from "../services/awc.service";
-import { NormalizationService } from "../services/normalization.service";
-import { WeatherCacheService } from "../services/weather-cache.service";
-import { FilterService } from "../services/filter.service";
-import { ApiClient } from "../core/ApiClient";
-import { env } from "../config/env";
-import { AWCFacade } from "../services/awc.facade";
 import { AWCController } from "../controllers/awc.controller";
+import { AuthRequest, verifyJWT } from "../middleware/auth";
+import { asyncRoute } from "../middleware/asyncHandler";
+import { validateQuery } from "../middleware/validation";
+import { AWCFacade } from "../services/awc.facade";
+import { FilterService } from "../services/filter.service";
+import { buildWeatherCacheService } from "../services/weather-cache";
+import {
+  airsigmetQuerySchema,
+  sigmetQuerySchema,
+} from "../validators/query.validator";
 
 const router = Router();
 
-// Initialize services
-const apiClient = new ApiClient(env.awcBaseUrl, { format: "json" });
-const awcService = new AWCService(apiClient);
-const normalizationService = new NormalizationService();
-const weatherCacheService = new WeatherCacheService(
-  awcService,
-  normalizationService
-);
+// --- Dependency initialization (light DI) ---
+const weatherCacheService = buildWeatherCacheService();
 const filterService = new FilterService();
 const awcFacade = new AWCFacade(weatherCacheService, filterService);
 const awcController = new AWCController(awcFacade);

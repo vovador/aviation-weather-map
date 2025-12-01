@@ -1,7 +1,16 @@
-import { GeoJSONFeatureCollection } from "../types/geojson";
-import { AWCService } from "./awc.service";
-import { NormalizationService } from "./normalization.service";
-import { logger } from "../utils/logger";
+import { GeoJSONFeatureCollection } from "../../types/geojson";
+import { AWCService } from "../awc.service";
+import { NormalizationService } from "../normalization.service";
+import { logger } from "../../utils/logger";
+
+/**
+ * Interface for weather cache services that provide SIGMET and AIRSIGMET data.
+ * Allows for both real and mock implementations.
+ */
+export interface IWeatherCacheService {
+  getSigmet(): Promise<GeoJSONFeatureCollection>;
+  getAirsigmet(): Promise<GeoJSONFeatureCollection>;
+}
 
 /**
  * WeatherCacheService handles in-memory caching with TTL expiration.
@@ -9,7 +18,7 @@ import { logger } from "../utils/logger";
  * It keeps SIGMET and AIRSIGMET cache entries independent but uses a
  * shared mechanism for deciding when data must be refreshed.
  */
-export class WeatherCacheService {
+export class WeatherCacheService implements IWeatherCacheService {
   private sigmetCache: GeoJSONFeatureCollection | null = null;
   private airsigmetCache: GeoJSONFeatureCollection | null = null;
 

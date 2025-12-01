@@ -49,15 +49,25 @@ yarn dev
 
 All filtering is performed in the backend. The AWC API is called without any filter parameters.
 
+## Mock Data
+
+For development and testing, you can enable mock data by setting `USE_MOCK_DATA=true` in your environment variables. When enabled, the API will return:
+
+- 1 AIRSIGMET feature with altitude range 0-35000 ft
+- 3 SIGMET features with various altitude ranges
+
+This allows you to test the application without making actual API calls to the AWC service.
+
 ## Environment Variables
 
-| Variable          | Description                | Required  |
-| ----------------- | -------------------------- | --------- |
-| `JWT_SECRET`      | Secret key for JWT signing | Yes       |
-| `FRONTEND_ORIGIN` | Allowed CORS origin        | Yes       |
-| `AWC_BASE_URL`    | AWC API base URL           | Yes       |
-| `PORT`            | Server port                | No (4000) |
-| `NODE_ENV`        | Environment mode           | No        |
+| Variable          | Description                                                                  | Required   |
+| ----------------- | ---------------------------------------------------------------------------- | ---------- |
+| `JWT_SECRET`      | Secret key for JWT signing                                                   | Yes        |
+| `FRONTEND_ORIGIN` | Allowed CORS origin                                                          | Yes        |
+| `AWC_BASE_URL`    | AWC API base URL                                                             | Yes        |
+| `PORT`            | Server port                                                                  | No (4000)  |
+| `NODE_ENV`        | Environment mode                                                             | No         |
+| `USE_MOCK_DATA`   | Use mock weather data instead of AWC API (returns 1 AIRSIGMET and 3 SIGMETs) | No (false) |
 
 ## Docker
 

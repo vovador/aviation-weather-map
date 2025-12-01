@@ -11,6 +11,7 @@ import RawTextBlock from './RawTextBlock'
 import { formatDate } from './formatDate'
 import { formatAltitudeRange } from './formatAltitudeRange'
 import { AdvisoryTypeIndicator } from './AdvisoryTypeIndicator'
+import { DEFAULTS } from '@/constants'
 
 interface PopupProps {
   feature: GeoJSONFeature
@@ -22,7 +23,7 @@ export const Popup: React.FC<PopupProps> = ({ feature, onClose }) => {
 
   // Extract and compute values
   const advisoryType = properties.advisoryType
-  const hazardType = properties.hazardType || 'Unknown'
+  const hazardType = properties.hazardType || DEFAULTS.HAZARD_TYPE
   const validityStart = formatDate(properties.validityStart)
   const validityEnd = formatDate(properties.validityEnd)
 

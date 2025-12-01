@@ -10,6 +10,7 @@ import { getDateRange } from "@/utils/dateUtils"
 import { useEmptyNotification } from "@/hooks/weather/useEmptyNotification"
 import { useErrorToast } from "@/hooks/weather/useErrorToast"
 import { FiltersContextProvider } from "@/contexts/FiltersContext"
+import { GEOJSON_TYPES, ADVISORY_TYPE_LABEL } from "@/constants"
 
 
 export const MapPage: React.FC = () => {
@@ -37,7 +38,7 @@ export const MapPage: React.FC = () => {
       to: dateRange.to,
       minAlt: String(minAltitude),
       maxAlt: String(maxAltitude),
-      geometryType: "Polygon",
+      geometryType: GEOJSON_TYPES.POLYGON,
     }),
     [dateRange, minAltitude, maxAltitude]
   )
@@ -84,8 +85,8 @@ export const MapPage: React.FC = () => {
   //
   // Show error toasts
   //
-  useErrorToast(sigmet.error, "SIGMET")
-  useErrorToast(airsigmet.error, "AIRSIGMET")
+  useErrorToast(sigmet.error, ADVISORY_TYPE_LABEL.SIGMET)
+  useErrorToast(airsigmet.error, ADVISORY_TYPE_LABEL.AIRSIGMET)
 
   //
   // Empty-data notifications
@@ -97,7 +98,7 @@ export const MapPage: React.FC = () => {
     isError: sigmet.isError,
     params: queryParams,
     enabled: showSigmet,
-    label: "SIGMET",
+    label: ADVISORY_TYPE_LABEL.SIGMET,
   })
 
   useEmptyNotification({
@@ -107,7 +108,7 @@ export const MapPage: React.FC = () => {
     isError: airsigmet.isError,
     params: queryParams,
     enabled: showAirsigmet,
-    label: "AIRSIGMET",
+    label: ADVISORY_TYPE_LABEL.AIRSIGMET,
   })
 
   //

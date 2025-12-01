@@ -3,6 +3,13 @@ import { configureStore } from "@reduxjs/toolkit";
 import { awcApi } from "../api/awcApi";
 import authReducer from "../../slices/authSlice";
 import filtersReducer from "../../slices/filtersSlice";
+import {
+  API_ENDPOINTS,
+  HTTP_METHODS,
+  HTTP_HEADERS,
+  HTTP_HEADER_VALUES,
+  GEOJSON_TYPES,
+} from "@/constants";
 
 // Mock fetch API
 const mockFetch = vi.fn();
@@ -57,14 +64,16 @@ describe("awcApi", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: expect.stringContaining("/auth/guest"),
-          method: "POST",
+          url: expect.stringContaining(API_ENDPOINTS.AUTH_GUEST),
+          method: HTTP_METHODS.POST,
         })
       );
       const request = mockFetch.mock.calls[0][0] as Request;
-      expect(request.url).toContain("/auth/guest");
-      expect(request.method).toBe("POST");
-      expect(request.headers.get("Content-Type")).toBe("application/json");
+      expect(request.url).toContain(API_ENDPOINTS.AUTH_GUEST);
+      expect(request.method).toBe(HTTP_METHODS.POST);
+      expect(request.headers.get(HTTP_HEADERS.CONTENT_TYPE)).toBe(
+        HTTP_HEADER_VALUES.APPLICATION_JSON
+      );
       expect(result.data).toEqual(mockResponseData);
     });
   });
@@ -72,7 +81,7 @@ describe("awcApi", () => {
   describe("getSigmet", () => {
     it("should call GET /sigmet with query params", async () => {
       const mockResponseData = {
-        type: "FeatureCollection",
+        type: GEOJSON_TYPES.FEATURE_COLLECTION,
         features: [],
       };
 
@@ -92,13 +101,17 @@ describe("awcApi", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          method: "GET",
+          method: HTTP_METHODS.GET,
         })
       );
       const request = mockFetch.mock.calls[0][0] as Request;
-      expect(request.url).toMatch(/\/sigmet\?.*from=.*to=.*minAlt=.*maxAlt=/);
-      expect(request.method).toBe("GET");
-      expect(request.headers.get("Content-Type")).toBe("application/json");
+      expect(request.url).toMatch(
+        new RegExp(`${API_ENDPOINTS.SIGMET}\\?.*from=.*to=.*minAlt=.*maxAlt=`)
+      );
+      expect(request.method).toBe(HTTP_METHODS.GET);
+      expect(request.headers.get(HTTP_HEADERS.CONTENT_TYPE)).toBe(
+        HTTP_HEADER_VALUES.APPLICATION_JSON
+      );
       expect(result.data).toEqual(mockResponseData);
     });
   });
@@ -106,7 +119,7 @@ describe("awcApi", () => {
   describe("getAirsigmet", () => {
     it("should call GET /airsigmet with query params", async () => {
       const mockResponseData = {
-        type: "FeatureCollection",
+        type: GEOJSON_TYPES.FEATURE_COLLECTION,
         features: [],
       };
 
@@ -126,15 +139,19 @@ describe("awcApi", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.objectContaining({
-          method: "GET",
+          method: HTTP_METHODS.GET,
         })
       );
       const request = mockFetch.mock.calls[0][0] as Request;
       expect(request.url).toMatch(
-        /\/airsigmet\?.*from=.*to=.*minAlt=.*maxAlt=/
+        new RegExp(
+          `${API_ENDPOINTS.AIRSIGMET}\\?.*from=.*to=.*minAlt=.*maxAlt=`
+        )
       );
-      expect(request.method).toBe("GET");
-      expect(request.headers.get("Content-Type")).toBe("application/json");
+      expect(request.method).toBe(HTTP_METHODS.GET);
+      expect(request.headers.get(HTTP_HEADERS.CONTENT_TYPE)).toBe(
+        HTTP_HEADER_VALUES.APPLICATION_JSON
+      );
       expect(result.data).toEqual(mockResponseData);
     });
   });

@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { STORAGE_KEYS } from "@/constants";
 
 interface AuthState {
   jwt: string | null;
@@ -6,8 +7,8 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  jwt: localStorage.getItem("jwt"),
-  isAuthenticated: !!localStorage.getItem("jwt"),
+  jwt: localStorage.getItem(STORAGE_KEYS.JWT),
+  isAuthenticated: !!localStorage.getItem(STORAGE_KEYS.JWT),
 };
 
 const authSlice = createSlice({
@@ -17,12 +18,12 @@ const authSlice = createSlice({
     login: (state, action: PayloadAction<string>) => {
       state.jwt = action.payload;
       state.isAuthenticated = true;
-      localStorage.setItem("jwt", action.payload);
+      localStorage.setItem(STORAGE_KEYS.JWT, action.payload);
     },
     logout: (state) => {
       state.jwt = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("jwt");
+      localStorage.removeItem(STORAGE_KEYS.JWT);
     },
     unauthorized: (state) => {
       // This action is dispatched by axios interceptor on 401 errors

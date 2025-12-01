@@ -1,11 +1,13 @@
+import { ADVISORY_TYPE, GEOJSON_TYPES } from "@/constants";
+
 // GeoJSON types matching backend
 export interface GeoJSONFeatureCollection {
-  type: "FeatureCollection";
+  type: typeof GEOJSON_TYPES.FEATURE_COLLECTION;
   features: GeoJSONFeature[];
 }
 
 export interface GeoJSONFeature {
-  type: "Feature";
+  type: typeof GEOJSON_TYPES.FEATURE;
   geometry: GeoJSONGeometry;
   properties: FeatureProperties;
 }
@@ -15,7 +17,7 @@ export interface GeoJSONGeometry {
   coordinates: number[] | number[][] | number[][][];
 }
 
-export type AdvisoryType = "SIGMET" | "AIRSIGMET";
+export type AdvisoryType = (typeof ADVISORY_TYPE)[keyof typeof ADVISORY_TYPE];
 
 export interface FeatureProperties {
   hazardType: string;

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import maplibregl from "maplibre-gl";
 import type { GeoJSONFeature, GeoJSONFeatureCollection } from "@/types";
+import { MAP_SOURCES, MAP_LAYERS, ADVISORY_TYPE } from "@/constants";
 
 interface UseClickHandlerProps {
   map: React.RefObject<maplibregl.Map | null>;
@@ -28,7 +29,7 @@ export const useClickHandler = ({
       if (!map.current) return;
 
       const features = map.current.queryRenderedFeatures(e.point, {
-        layers: ["sigmet-fill", "airsigmet-fill"],
+        layers: [MAP_LAYERS.SIGMET_FILL, MAP_LAYERS.AIRSIGMET_FILL],
       });
 
       if (features.length > 0) {
@@ -39,12 +40,15 @@ export const useClickHandler = ({
         // Try to get the feature from sigmet or airsigmet data
         let fullFeature: GeoJSONFeature | undefined;
 
-        if (sourceId === "sigmet" && sigmetDataRef.current) {
+        if (sourceId === MAP_SOURCES.SIGMET && sigmetDataRef.current) {
           fullFeature = sigmetDataRef.current.features.find(
             (f) =>
               f.properties.bulletinId === clickedFeature.properties?.bulletinId
           );
-        } else if (sourceId === "airsigmet" && airsigmetDataRef.current) {
+        } else if (
+          sourceId === MAP_SOURCES.AIRSIGMET &&
+          airsigmetDataRef.current
+        ) {
           fullFeature = airsigmetDataRef.current.features.find(
             (f) =>
               f.properties.bulletinId === clickedFeature.properties?.bulletinId
@@ -57,7 +61,10 @@ export const useClickHandler = ({
             ...fullFeature,
             properties: {
               ...fullFeature.properties,
-              advisoryType: sourceId === "sigmet" ? "SIGMET" : "AIRSIGMET",
+              advisoryType:
+                sourceId === MAP_SOURCES.SIGMET
+                  ? ADVISORY_TYPE.SIGMET
+                  : ADVISORY_TYPE.AIRSIGMET,
             },
           };
           onFeatureSelect(featureWithType);

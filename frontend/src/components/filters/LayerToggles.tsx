@@ -1,6 +1,7 @@
 import React from 'react'
 import { Toggle } from '@/components/ui/toggle'
 import { cn } from '@/lib/utils'
+import { ADVISORY_TYPE_LABEL } from '@/constants'
 
 interface LayerTogglesProps {
   showSigmet: boolean
@@ -20,7 +21,7 @@ export const LayerToggles: React.FC<LayerTogglesProps> = ({
       <Toggle
         pressed={showSigmet}
         onPressedChange={onSigmetToggle}
-        aria-label="Toggle SIGMET"
+        aria-label={`Toggle ${ADVISORY_TYPE_LABEL.SIGMET}`}
         className={cn(
           "px-4 py-2 rounded-md font-medium transition-all cursor-pointer",
           showSigmet
@@ -28,12 +29,12 @@ export const LayerToggles: React.FC<LayerTogglesProps> = ({
             : "bg-transparent text-gray-500 border border-gray-300 hover:bg-gray-50 data-[state=off]:bg-transparent"
         )}
       >
-        SIGMET
+        {ADVISORY_TYPE_LABEL.SIGMET}
       </Toggle>
       <Toggle
         pressed={showAirsigmet}
         onPressedChange={onAirsigmetToggle}
-        aria-label="Toggle AIRSIGMET"
+        aria-label={`Toggle ${ADVISORY_TYPE_LABEL.AIRSIGMET}`}
         className={cn(
           "px-4 py-2 rounded-md font-medium transition-all cursor-pointer",
           showAirsigmet
@@ -41,7 +42,7 @@ export const LayerToggles: React.FC<LayerTogglesProps> = ({
             : "bg-transparent text-gray-500 border border-gray-300 hover:bg-gray-50 data-[state=off]:bg-transparent"
         )}
       >
-        AIRSIGMET
+        {ADVISORY_TYPE_LABEL.AIRSIGMET}
       </Toggle>
     </div>
   )

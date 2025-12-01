@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import maplibregl from "maplibre-gl";
 import type { GeoJSONFeatureCollection } from "@/types";
+import { GEOJSON_TYPES } from "@/constants";
 
 interface UseFitBoundsProps {
   map: React.RefObject<maplibregl.Map | null>;
@@ -30,7 +31,7 @@ export const useFitBounds = ({
 
     const coordinates: number[][] = [];
     allFeatures.forEach((feature) => {
-      if (feature.geometry.type === "Polygon") {
+      if (feature.geometry.type === GEOJSON_TYPES.POLYGON) {
         const coords = feature.geometry.coordinates[0] as number[][];
         coordinates.push(...coords);
       }

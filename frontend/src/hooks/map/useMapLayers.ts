@@ -2,6 +2,12 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import type { GeoJSON } from "geojson";
 import type { GeoJSONFeatureCollection } from "@/types";
+import {
+  MAP_SOURCES,
+  MAP_LAYERS,
+  GEOJSON_TYPES,
+  MAP_VISIBILITY,
+} from "@/constants";
 
 interface UseMapLayersProps {
   map: maplibregl.Map | null;
@@ -98,19 +104,19 @@ export const useMapLayers = ({
 
     const onLoad = () => {
       // ---- SIGMET source ----
-      if (!map.getSource("sigmet")) {
-        map.addSource("sigmet", {
+      if (!map.getSource(MAP_SOURCES.SIGMET)) {
+        map.addSource(MAP_SOURCES.SIGMET, {
           type: "geojson",
-          data: { type: "FeatureCollection", features: [] },
+          data: { type: GEOJSON_TYPES.FEATURE_COLLECTION, features: [] },
         });
       }
 
       // SIGMET fill layer
-      if (!map.getLayer("sigmet-fill")) {
+      if (!map.getLayer(MAP_LAYERS.SIGMET_FILL)) {
         map.addLayer({
-          id: "sigmet-fill",
+          id: MAP_LAYERS.SIGMET_FILL,
           type: "fill",
-          source: "sigmet",
+          source: MAP_SOURCES.SIGMET,
           paint: {
             "fill-color": "#e63946",
             "fill-opacity": 0.3,
@@ -119,11 +125,11 @@ export const useMapLayers = ({
       }
 
       // SIGMET outline layer
-      if (!map.getLayer("sigmet-outline")) {
+      if (!map.getLayer(MAP_LAYERS.SIGMET_OUTLINE)) {
         map.addLayer({
-          id: "sigmet-outline",
+          id: MAP_LAYERS.SIGMET_OUTLINE,
           type: "line",
-          source: "sigmet",
+          source: MAP_SOURCES.SIGMET,
           paint: {
             "line-color": "#e63946",
             "line-width": 2,
@@ -132,19 +138,19 @@ export const useMapLayers = ({
       }
 
       // ---- AIRSIGMET source ----
-      if (!map.getSource("airsigmet")) {
-        map.addSource("airsigmet", {
+      if (!map.getSource(MAP_SOURCES.AIRSIGMET)) {
+        map.addSource(MAP_SOURCES.AIRSIGMET, {
           type: "geojson",
-          data: { type: "FeatureCollection", features: [] },
+          data: { type: GEOJSON_TYPES.FEATURE_COLLECTION, features: [] },
         });
       }
 
       // AIRSIGMET fill
-      if (!map.getLayer("airsigmet-fill")) {
+      if (!map.getLayer(MAP_LAYERS.AIRSIGMET_FILL)) {
         map.addLayer({
-          id: "airsigmet-fill",
+          id: MAP_LAYERS.AIRSIGMET_FILL,
           type: "fill",
-          source: "airsigmet",
+          source: MAP_SOURCES.AIRSIGMET,
           paint: {
             "fill-color": "#457b9d",
             "fill-opacity": 0.3,
@@ -153,11 +159,11 @@ export const useMapLayers = ({
       }
 
       // AIRSIGMET outline
-      if (!map.getLayer("airsigmet-outline")) {
+      if (!map.getLayer(MAP_LAYERS.AIRSIGMET_OUTLINE)) {
         map.addLayer({
-          id: "airsigmet-outline",
+          id: MAP_LAYERS.AIRSIGMET_OUTLINE,
           type: "line",
-          source: "airsigmet",
+          source: MAP_SOURCES.AIRSIGMET,
           paint: {
             "line-color": "#457b9d",
             "line-width": 2,
@@ -167,50 +173,56 @@ export const useMapLayers = ({
 
       // Apply any data that arrived before the style finished loading
       // This ensures SIGMET/AIRSIGMET polygons are visible on initial load
-      const sigSrc = map.getSource("sigmet") as maplibregl.GeoJSONSource | null;
+      const sigSrc = map.getSource(
+        MAP_SOURCES.SIGMET
+      ) as maplibregl.GeoJSONSource | null;
       if (sigSrc) {
         const data =
           showSigmetRef.current && sigmetDataRef.current
             ? sigmetDataRef.current
-            : { type: "FeatureCollection", features: [] };
+            : { type: GEOJSON_TYPES.FEATURE_COLLECTION, features: [] };
         sigSrc.setData(data as any);
-        if (map.getLayer("sigmet-fill")) {
+        if (map.getLayer(MAP_LAYERS.SIGMET_FILL)) {
           map.setLayoutProperty(
-            "sigmet-fill",
+            MAP_LAYERS.SIGMET_FILL,
             "visibility",
-            showSigmetRef.current ? "visible" : "none"
+            showSigmetRef.current ? MAP_VISIBILITY.VISIBLE : MAP_VISIBILITY.NONE
           );
         }
-        if (map.getLayer("sigmet-outline")) {
+        if (map.getLayer(MAP_LAYERS.SIGMET_OUTLINE)) {
           map.setLayoutProperty(
-            "sigmet-outline",
+            MAP_LAYERS.SIGMET_OUTLINE,
             "visibility",
-            showSigmetRef.current ? "visible" : "none"
+            showSigmetRef.current ? MAP_VISIBILITY.VISIBLE : MAP_VISIBILITY.NONE
           );
         }
       }
 
       const airSrc = map.getSource(
-        "airsigmet"
+        MAP_SOURCES.AIRSIGMET
       ) as maplibregl.GeoJSONSource | null;
       if (airSrc) {
         const data =
           showAirsigmetRef.current && airsigmetDataRef.current
             ? airsigmetDataRef.current
-            : { type: "FeatureCollection", features: [] };
+            : { type: GEOJSON_TYPES.FEATURE_COLLECTION, features: [] };
         airSrc.setData(data as any);
-        if (map.getLayer("airsigmet-fill")) {
+        if (map.getLayer(MAP_LAYERS.AIRSIGMET_FILL)) {
           map.setLayoutProperty(
-            "airsigmet-fill",
+            MAP_LAYERS.AIRSIGMET_FILL,
             "visibility",
-            showAirsigmetRef.current ? "visible" : "none"
+            showAirsigmetRef.current
+              ? MAP_VISIBILITY.VISIBLE
+              : MAP_VISIBILITY.NONE
           );
         }
-        if (map.getLayer("airsigmet-outline")) {
+        if (map.getLayer(MAP_LAYERS.AIRSIGMET_OUTLINE)) {
           map.setLayoutProperty(
-            "airsigmet-outline",
+            MAP_LAYERS.AIRSIGMET_OUTLINE,
             "visibility",
-            showAirsigmetRef.current ? "visible" : "none"
+            showAirsigmetRef.current
+              ? MAP_VISIBILITY.VISIBLE
+              : MAP_VISIBILITY.NONE
           );
         }
       }
@@ -228,28 +240,28 @@ export const useMapLayers = ({
    * Update SIGMET data + visibility
    */
   useEffect(() => {
-    if (!map || !map.getSource("sigmet")) return;
+    if (!map || !map.getSource(MAP_SOURCES.SIGMET)) return;
 
-    const src = map.getSource("sigmet") as maplibregl.GeoJSONSource;
+    const src = map.getSource(MAP_SOURCES.SIGMET) as maplibregl.GeoJSONSource;
 
     src.setData(
       (showSigmet && sigmetData
         ? sigmetData
-        : { type: "FeatureCollection", features: [] }) as GeoJSON
+        : { type: GEOJSON_TYPES.FEATURE_COLLECTION, features: [] }) as GeoJSON
     );
 
-    if (map.getLayer("sigmet-fill")) {
+    if (map.getLayer(MAP_LAYERS.SIGMET_FILL)) {
       map.setLayoutProperty(
-        "sigmet-fill",
+        MAP_LAYERS.SIGMET_FILL,
         "visibility",
-        showSigmet ? "visible" : "none"
+        showSigmet ? MAP_VISIBILITY.VISIBLE : MAP_VISIBILITY.NONE
       );
     }
-    if (map.getLayer("sigmet-outline")) {
+    if (map.getLayer(MAP_LAYERS.SIGMET_OUTLINE)) {
       map.setLayoutProperty(
-        "sigmet-outline",
+        MAP_LAYERS.SIGMET_OUTLINE,
         "visibility",
-        showSigmet ? "visible" : "none"
+        showSigmet ? MAP_VISIBILITY.VISIBLE : MAP_VISIBILITY.NONE
       );
     }
   }, [map, sigmetData, showSigmet]);
@@ -258,28 +270,30 @@ export const useMapLayers = ({
    * Update AIRSIGMET data + visibility
    */
   useEffect(() => {
-    if (!map || !map.getSource("airsigmet")) return;
+    if (!map || !map.getSource(MAP_SOURCES.AIRSIGMET)) return;
 
-    const src = map.getSource("airsigmet") as maplibregl.GeoJSONSource;
+    const src = map.getSource(
+      MAP_SOURCES.AIRSIGMET
+    ) as maplibregl.GeoJSONSource;
 
     src.setData(
       (showAirsigmet && airsigmetData
         ? airsigmetData
-        : { type: "FeatureCollection", features: [] }) as GeoJSON
+        : { type: GEOJSON_TYPES.FEATURE_COLLECTION, features: [] }) as GeoJSON
     );
 
-    if (map.getLayer("airsigmet-fill")) {
+    if (map.getLayer(MAP_LAYERS.AIRSIGMET_FILL)) {
       map.setLayoutProperty(
-        "airsigmet-fill",
+        MAP_LAYERS.AIRSIGMET_FILL,
         "visibility",
-        showAirsigmet ? "visible" : "none"
+        showAirsigmet ? MAP_VISIBILITY.VISIBLE : MAP_VISIBILITY.NONE
       );
     }
-    if (map.getLayer("airsigmet-outline")) {
+    if (map.getLayer(MAP_LAYERS.AIRSIGMET_OUTLINE)) {
       map.setLayoutProperty(
-        "airsigmet-outline",
+        MAP_LAYERS.AIRSIGMET_OUTLINE,
         "visibility",
-        showAirsigmet ? "visible" : "none"
+        showAirsigmet ? MAP_VISIBILITY.VISIBLE : MAP_VISIBILITY.NONE
       );
     }
   }, [map, airsigmetData, showAirsigmet]);

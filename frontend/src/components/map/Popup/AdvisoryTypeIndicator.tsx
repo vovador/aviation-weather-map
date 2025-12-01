@@ -1,14 +1,15 @@
 import React from 'react'
 import { CardTitle } from '@/components/ui/card'
 import type { AdvisoryType } from '@/types'
+import { ADVISORY_TYPE, ADVISORY_TYPE_COLORS } from '@/constants'
 
 /**
  * Returns the Tailwind color class for the advisory type icon
  */
 const getAdvisoryIconColor = (advisoryType: AdvisoryType | undefined): string => {
-  if (advisoryType === 'SIGMET') return 'bg-red-500'
-  if (advisoryType === 'AIRSIGMET') return 'bg-blue-500'
-  return 'bg-gray-400'
+  if (advisoryType === ADVISORY_TYPE.SIGMET) return ADVISORY_TYPE_COLORS.SIGMET
+  if (advisoryType === ADVISORY_TYPE.AIRSIGMET) return ADVISORY_TYPE_COLORS.AIRSIGMET
+  return ADVISORY_TYPE_COLORS.DEFAULT
 }
 
 /**

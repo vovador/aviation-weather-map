@@ -1,0 +1,43 @@
+import { fetchBaseQuery, type BaseQueryFn } from "@reduxjs/toolkit/query/react";
+import { unauthorized } from "@/redux/slices/authSlice";
+import { prepareAuthHeaders } from "./prepareAuthHeaders";
+import { logRequest } from "./logRequest";
+import { logResponse } from "./logResponse";
+
+const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: baseURL,
+  prepareHeaders: prepareAuthHeaders,
+});
+
+export const baseQueryWith401Handler: BaseQueryFn = async (
+  args,
+  api,
+  extra
+) => {
+  const started = performance.now();
+
+  const isString = typeof args === "string";
+  const url = isString ? args : (args as any).url;
+  const method = isString ? "GET" : (args as any).method ?? "GET";
+  const params = !isString ? (args as any).params : undefined;
+
+  logRequest(method, url, params);
+
+  const result = await rawBaseQuery(args, api, extra);
+  const duration = Math.round(performance.now() - started);
+
+  // Handle unauthorized
+  if (result.error?.status === 401) {
+    console.error(
+      `[RTK] ✗ ${method} ${url} UNAUTHORIZED (${duration}ms)`,
+      result.error
+    );
+    api.dispatch(unauthorized());
+    return result;
+  }
+
+  logResponse(method, url, duration, result);
+  return result;
+};

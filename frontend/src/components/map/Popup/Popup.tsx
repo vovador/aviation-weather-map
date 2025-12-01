@@ -1,6 +1,5 @@
 import React from 'react'
 import type { GeoJSONFeature } from '@/types'
-import { countCoordinates } from '@/utils/filterUtils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -11,6 +10,7 @@ import TimeRange from './TimeRange'
 import RawTextBlock from './RawTextBlock'
 import { formatDate } from './formatDate'
 import { formatAltitudeRange } from './formatAltitudeRange'
+import { AdvisoryTypeIndicator } from './AdvisoryTypeIndicator'
 
 interface PopupProps {
   feature: GeoJSONFeature
@@ -18,24 +18,33 @@ interface PopupProps {
 }
 
 export const Popup: React.FC<PopupProps> = ({ feature, onClose }) => {
-  const { properties, geometry } = feature
+  const { properties } = feature
 
-  const hazardLabel = properties.hazardType ? (
-    <Badge variant="outline" className="text-base font-semibold">
-      {properties.hazardType}
-    </Badge>
-  ) : (
-    'Unknown'
-  )
-
+  // Extract and compute values
+  const advisoryType = properties.advisoryType
+  const hazardType = properties.hazardType || 'Unknown'
   const validityStart = formatDate(properties.validityStart)
   const validityEnd = formatDate(properties.validityEnd)
 
+  // Render hazard label
+  const hazardLabel = (
+    <Badge variant="outline" className="text-base font-semibold">
+      {hazardType}
+    </Badge>
+  )
+
+  // Determine header title
+  const headerTitle = advisoryType ? (
+    <AdvisoryTypeIndicator type={advisoryType} />
+  ) : (
+    <CardTitle className="text-lg">{hazardLabel}</CardTitle>
+  )
+
   return (
-    <Card className="max-w-sm shadow-xl">
+    <Card className="w-[400px] h-[500px] flex flex-col shadow-xl">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{hazardLabel}</CardTitle>
+          <div className="flex items-center gap-2">{headerTitle}</div>
           <Button
             variant="ghost"
             size="icon"
@@ -46,10 +55,15 @@ export const Popup: React.FC<PopupProps> = ({ feature, onClose }) => {
             <X className="h-4 w-4" />
           </Button>
         </div>
+        {advisoryType && (
+          <div className="mt-2">
+            <div className="text-sm text-muted-foreground">Hazard: {hazardLabel}</div>
+          </div>
+        )}
       </CardHeader>
 
-      <CardContent>
-        <ScrollArea className="max-h-[60vh] pr-4">
+      <CardContent className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full pr-4">
           <div className="space-y-3 text-sm">
 
             <InfoRow label="Bulletin ID:" value={properties.bulletinId} />
@@ -64,11 +78,6 @@ export const Popup: React.FC<PopupProps> = ({ feature, onClose }) => {
             )}
 
             <TimeRange start={validityStart} end={validityEnd} />
-
-            <InfoRow
-              label="Coordinates:"
-              value={`${countCoordinates(geometry.coordinates)} points`}
-            />
 
             {properties.rawText && <RawTextBlock text={properties.rawText} />}
           </div>

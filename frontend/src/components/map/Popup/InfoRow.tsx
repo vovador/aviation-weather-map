@@ -9,7 +9,7 @@ interface InfoRowProps {
 const InfoRow: React.FC<InfoRowProps> = ({ label, value }) => (
   <div>
     <Label className="text-muted-foreground">{label}</Label>
-    <p className="font-medium mt-1">{value}</p>
+    <p className="font-medium mt-1 break-words">{value}</p>
   </div>
 )
 

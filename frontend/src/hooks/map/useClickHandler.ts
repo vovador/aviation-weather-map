@@ -52,7 +52,15 @@ export const useClickHandler = ({
         }
 
         if (fullFeature) {
-          onFeatureSelect(fullFeature);
+          // Add advisory type to the feature properties
+          const featureWithType: GeoJSONFeature = {
+            ...fullFeature,
+            properties: {
+              ...fullFeature.properties,
+              advisoryType: sourceId === "sigmet" ? "SIGMET" : "AIRSIGMET",
+            },
+          };
+          onFeatureSelect(featureWithType);
         }
       } else {
         onFeatureSelect(null);

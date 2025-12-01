@@ -15,6 +15,8 @@ export interface GeoJSONGeometry {
   coordinates: number[] | number[][] | number[][][];
 }
 
+export type AdvisoryType = "SIGMET" | "AIRSIGMET";
+
 export interface FeatureProperties {
   hazardType: string;
   bulletinId: string;
@@ -27,6 +29,7 @@ export interface FeatureProperties {
     unit?: string;
   };
   fir?: string;
+  advisoryType?: AdvisoryType;
   [key: string]: unknown;
 }
 

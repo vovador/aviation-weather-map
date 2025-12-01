@@ -1,12 +1,12 @@
 import React, { useRef, useState } from 'react'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { GeoJSONFeatureCollection, GeoJSONFeature } from '@/types'
-import { useMapLayers } from './useMapLayers'
-import { Popup } from './Popup'
-import { useInitMap } from './hooks/useInitMap'
-import { useSyncRefs } from './hooks/useSyncRefs'
-import { useClickHandler } from './hooks/useClickHandler'
-import { useFitBounds } from './hooks/useFitBounds'
+import { useMapLayers } from '../../hooks/map/useMapLayers'
+import { Popup } from './Popup/Popup'
+import { useInitMap } from '../../hooks/map/useInitMap'
+import { useSyncRefs } from '../../hooks/map/useSyncRefs'
+import { useClickHandler } from '../../hooks/map/useClickHandler'
+import { useFitBounds } from '../../hooks/map/useFitBounds'
 
 interface MapViewProps {
   sigmetData: GeoJSONFeatureCollection | undefined

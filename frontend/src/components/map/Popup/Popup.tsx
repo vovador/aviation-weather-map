@@ -6,11 +6,11 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
-import InfoRow from './Popup/InfoRow'
-import TimeRange from './Popup/TimeRange'
-import RawTextBlock from './Popup/RawTextBlock'
-import { formatDate } from './Popup/formatDate'
-import { formatAltitudeRange } from './Popup/formatAltitudeRange'
+import InfoRow from './InfoRow'
+import TimeRange from './TimeRange'
+import RawTextBlock from './RawTextBlock'
+import { formatDate } from './formatDate'
+import { formatAltitudeRange } from './formatAltitudeRange'
 
 interface PopupProps {
   feature: GeoJSONFeature

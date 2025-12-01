@@ -1,11 +1,13 @@
-import React, { useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import React, { useState, useEffect } from 'react'
+import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import type { RootState, AppDispatch } from '@/redux/store'
+import type { RootState } from '@/redux/store'
 import { useAuth } from '@/hooks/useAuth'
 import { useAltitudeControls } from '@/hooks/filters/useAltitudeControls'
 import { useTimeOffsetControls } from '@/hooks/filters/useTimeOffsetControls'
 import { useToggleControls } from '@/hooks/filters/useToggleControls'
+import { useApplyFilters } from '@/hooks/filters/useApplyFilters'
+import { useFiltersContext } from '@/contexts/FiltersContext'
 import toast from 'react-hot-toast'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,11 +17,15 @@ import { LayerToggles } from './LayerToggles'
 import { AltitudeRange } from './AltitudeRange'
 import { TimeOffset } from './TimeOffset'
 import { LogoutButton } from './LogoutButton'
+import { ApplyFiltersButton } from './ApplyFiltersButton'
 
 export const FiltersPanel: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
   const { logout } = useAuth()
+  // Get refetch function from FiltersContext to trigger data refresh when filters are applied.
+  // The context provides access to RTK Query refetch functions from MapPage without prop drilling.
+  // See FiltersContext.tsx for details on why Context is used instead of Redux for this.
+  const { refetchAll } = useFiltersContext()
   const [open, setOpen] = useState(true)
 
   const {
@@ -35,18 +41,51 @@ export const FiltersPanel: React.FC = () => {
     localMaxAltitude,
     setLocalMinAltitude,
     setLocalMaxAltitude,
-  } = useAltitudeControls(reduxMinAltitude, reduxMaxAltitude, dispatch)
+  } = useAltitudeControls(reduxMinAltitude, reduxMaxAltitude)
 
   const {
     localTimeOffsetHours,
     setLocalTimeOffsetHours,
     timeRange,
-  } = useTimeOffsetControls(reduxTimeOffsetHours, dispatch)
+  } = useTimeOffsetControls(reduxTimeOffsetHours)
 
   const {
+    localShowSigmet,
+    localShowAirsigmet,
+    setLocalShowSigmet,
+    setLocalShowAirsigmet,
     handleSigmetToggle,
     handleAirsigmetToggle,
-  } = useToggleControls(showSigmet, showAirsigmet, dispatch)
+  } = useToggleControls(showSigmet, showAirsigmet)
+
+  const {
+    hasUnsavedChanges,
+    isApplying,
+    handleApplyFilters,
+  } = useApplyFilters({
+    localMinAltitude,
+    localMaxAltitude,
+    localTimeOffsetHours,
+    localShowSigmet,
+    localShowAirsigmet,
+    reduxMinAltitude,
+    reduxMaxAltitude,
+    reduxTimeOffsetHours,
+    reduxShowSigmet: showSigmet,
+    reduxShowAirsigmet: showAirsigmet,
+    onRefetch: refetchAll,
+  })
+
+  // Reset local state to Redux state when panel closes
+  useEffect(() => {
+    if (!open) {
+      setLocalMinAltitude(reduxMinAltitude)
+      setLocalMaxAltitude(reduxMaxAltitude)
+      setLocalTimeOffsetHours(reduxTimeOffsetHours)
+      setLocalShowSigmet(showSigmet)
+      setLocalShowAirsigmet(showAirsigmet)
+    }
+  }, [open, reduxMinAltitude, reduxMaxAltitude, reduxTimeOffsetHours, showSigmet, showAirsigmet, setLocalMinAltitude, setLocalMaxAltitude, setLocalTimeOffsetHours, setLocalShowSigmet, setLocalShowAirsigmet])
 
   const handleLogout = () => {
     logout()
@@ -78,8 +117,8 @@ export const FiltersPanel: React.FC = () => {
             </CardHeader>
             <CardContent>
               <LayerToggles
-                showSigmet={showSigmet}
-                showAirsigmet={showAirsigmet}
+                showSigmet={localShowSigmet}
+                showAirsigmet={localShowAirsigmet}
                 onSigmetToggle={handleSigmetToggle}
                 onAirsigmetToggle={handleAirsigmetToggle}
               />
@@ -114,7 +153,14 @@ export const FiltersPanel: React.FC = () => {
           </Card>
         </div>
 
-        <LogoutButton onLogout={handleLogout} />
+        <div className="mt-6 space-y-3">
+          <ApplyFiltersButton
+            onClick={handleApplyFilters}
+            disabled={isApplying || !hasUnsavedChanges}
+            isApplying={isApplying}
+          />
+          <LogoutButton onLogout={handleLogout} />
+        </div>
       </SheetContent>
     </Sheet>
   )

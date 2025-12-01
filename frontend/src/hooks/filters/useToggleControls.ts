@@ -1,22 +1,35 @@
-import { setShowSigmet, setShowAirsigmet } from "@/redux/slices/filtersSlice";
-import type { AppDispatch } from "@/redux/store";
+import { useState, useEffect } from "react";
 
 export const useToggleControls = (
-  showSigmet: boolean,
-  showAirsigmet: boolean,
-  dispatch: AppDispatch
+  reduxShowSigmet: boolean,
+  reduxShowAirsigmet: boolean
 ) => {
+  const [localShowSigmet, setLocalShowSigmet] = useState(reduxShowSigmet);
+  const [localShowAirsigmet, setLocalShowAirsigmet] =
+    useState(reduxShowAirsigmet);
+
+  // Sync local state with Redux state when it changes externally
+  useEffect(() => {
+    setLocalShowSigmet(reduxShowSigmet);
+  }, [reduxShowSigmet]);
+
+  useEffect(() => {
+    setLocalShowAirsigmet(reduxShowAirsigmet);
+  }, [reduxShowAirsigmet]);
+
   const handleSigmetToggle = (pressed: boolean) => {
-    dispatch(setShowSigmet(pressed));
+    setLocalShowSigmet(pressed);
   };
 
   const handleAirsigmetToggle = (pressed: boolean) => {
-    dispatch(setShowAirsigmet(pressed));
+    setLocalShowAirsigmet(pressed);
   };
 
   return {
-    showSigmet,
-    showAirsigmet,
+    localShowSigmet,
+    localShowAirsigmet,
+    setLocalShowSigmet,
+    setLocalShowAirsigmet,
     handleSigmetToggle,
     handleAirsigmetToggle,
   };

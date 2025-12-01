@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react"
+import React, { useEffect, useMemo, useRef, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { useSelector } from "react-redux"
 import type { RootState } from "@/redux/store"
@@ -9,6 +9,7 @@ import { FiltersPanel } from "@/components/filters/FiltersPanel"
 import { getDateRange } from "@/utils/dateUtils"
 import { useEmptyNotification } from "@/hooks/weather/useEmptyNotification"
 import { useErrorToast } from "@/hooks/weather/useErrorToast"
+import { FiltersContextProvider } from "@/contexts/FiltersContext"
 
 
 export const MapPage: React.FC = () => {
@@ -117,32 +118,52 @@ export const MapPage: React.FC = () => {
     !sigmet.isError &&
     !airsigmet.isError
 
+  // Wrap refetch functions to match expected signature
+  const refetchSigmet = useCallback(async () => {
+    await sigmet.refetch()
+  }, [sigmet])
+
+  const refetchAirsigmet = useCallback(async () => {
+    await airsigmet.refetch()
+  }, [airsigmet])
+
   if (!isAuthenticated) return null
 
+  //
+  // Provide refetch functions via Context to FiltersPanel
+  // This allows FiltersPanel to trigger data refetch when filters are applied,
+  // without needing to pass callbacks through props or store functions in Redux.
+  // See FiltersContext.tsx for more details on why Context is used here.
+  //
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
-      <div className="absolute inset-0">
-        {isLoading && (
-          <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-700">Loading weather data...</p>
+    <FiltersContextProvider
+      refetchSigmet={refetchSigmet}
+      refetchAirsigmet={refetchAirsigmet}
+    >
+      <div className="relative w-screen h-screen overflow-hidden">
+        <div className="absolute inset-0">
+          {isLoading && (
+            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-700">Loading weather data...</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <MapView
-          sigmetData={sigmet.data}
-          airsigmetData={airsigmet.data}
-          showSigmet={showSigmet}
-          showAirsigmet={showAirsigmet}
-          minAltitude={minAltitude}
-          maxAltitude={maxAltitude}
-        />
+          <MapView
+            sigmetData={sigmet.data}
+            airsigmetData={airsigmet.data}
+            showSigmet={showSigmet}
+            showAirsigmet={showAirsigmet}
+            minAltitude={minAltitude}
+            maxAltitude={maxAltitude}
+          />
+        </div>
+
+        <FiltersPanel />
       </div>
-
-      <FiltersPanel />
-    </div>
+    </FiltersContextProvider>
   )
 }
 

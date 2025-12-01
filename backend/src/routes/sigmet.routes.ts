@@ -10,6 +10,7 @@ import {
   airsigmetQuerySchema,
   sigmetQuerySchema,
 } from "../validators/query.validator";
+import { API_ROUTES } from "../constants/apiRoutes";
 
 const router = Router();
 
@@ -45,7 +46,7 @@ const awcController = new AWCController(awcFacade);
  *         $ref: '#/components/responses/InternalServerErrorResponse'
  */
 router.get(
-  "/sigmet",
+  API_ROUTES.SIGMET,
   verifyJWT,
   validateQuery(sigmetQuerySchema),
   asyncRoute((req, res, _next) =>
@@ -79,7 +80,7 @@ router.get(
  *         $ref: '#/components/responses/InternalServerErrorResponse'
  */
 router.get(
-  "/airsigmet",
+  API_ROUTES.AIRSIGMET,
   verifyJWT,
   validateQuery(airsigmetQuerySchema),
   asyncRoute((req, res, _next) =>

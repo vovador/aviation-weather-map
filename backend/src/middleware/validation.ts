@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { z, ZodSchema } from "zod";
 import { logger } from "../utils/logger";
+import { HTTP_STATUS } from "../constants/httpStatus";
+import { ERROR_MESSAGES } from "../constants/errorMessages";
 
 export function validateQuery(schema: ZodSchema) {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -14,8 +16,8 @@ export function validateQuery(schema: ZodSchema) {
           errors: error.errors,
           query: req.query,
         });
-        res.status(400).json({
-          error: "Invalid query parameters",
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          error: ERROR_MESSAGES.INVALID_QUERY_PARAMETERS,
           details: error.errors,
         });
         return;

@@ -4,6 +4,10 @@ import { ApiClient, ApiClientError } from "../core/ApiClient";
 import { AWCServiceError } from "../errors/AWCServiceError";
 import { logger } from "../utils/logger";
 import { createApiResponseSummary } from "../utils/apiResponseSummary";
+import { AWC_API_PATHS } from "../constants/awcApiPaths";
+import { API_ERROR_CODES } from "../constants/apiErrorCodes";
+import { HTTP_STATUS } from "../constants/httpStatus";
+import { ERROR_MESSAGES } from "../constants/errorMessages";
 
 export class AWCService {
   // Accepting the transport layer as a dependency makes the service trivial to mock in tests.
@@ -15,13 +19,13 @@ export class AWCService {
     params: Record<string, string>
   ): Promise<AWCSigmetResponse> {
     // This method now focuses solely on aviation-domain work, delegating HTTP concerns to ApiClient.
-    return this.execute<AWCSigmetResponse>("/data/isigmet", params);
+    return this.execute<AWCSigmetResponse>(AWC_API_PATHS.SIGMET, params);
   }
 
   async fetchAirsigmet(
     params: Record<string, string>
   ): Promise<AWCAirsigmetResponse> {
-    return this.execute<AWCAirsigmetResponse>("/data/airsigmet", params);
+    return this.execute<AWCAirsigmetResponse>(AWC_API_PATHS.AIRSIGMET, params);
   }
 
   private async execute<T>(
@@ -49,22 +53,31 @@ export class AWCService {
   private mapError(error: unknown): Error {
     if (error instanceof ApiClientError) {
       switch (error.code) {
-        case "TIMEOUT":
-          return new AWCServiceError(504, "Request to AWC API timed out");
-        case "NETWORK":
-          return new AWCServiceError(503, "Failed to connect to AWC API");
-        case "NON_200":
+        case API_ERROR_CODES.TIMEOUT:
           return new AWCServiceError(
-            error.status ?? 502,
-            `AWC API returned status ${error.status ?? "unknown"}`
+            HTTP_STATUS.GATEWAY_TIMEOUT,
+            ERROR_MESSAGES.AWC_API_TIMED_OUT
           );
-        case "INVALID":
+        case API_ERROR_CODES.NETWORK:
           return new AWCServiceError(
-            502,
-            "Invalid response structure from AWC API"
+            HTTP_STATUS.SERVICE_UNAVAILABLE,
+            ERROR_MESSAGES.AWC_API_CONNECTION_FAILED
+          );
+        case API_ERROR_CODES.NON_200:
+          return new AWCServiceError(
+            error.status ?? HTTP_STATUS.BAD_GATEWAY,
+            ERROR_MESSAGES.AWC_API_RETURNED_STATUS(error.status ?? "unknown")
+          );
+        case API_ERROR_CODES.INVALID:
+          return new AWCServiceError(
+            HTTP_STATUS.BAD_GATEWAY,
+            ERROR_MESSAGES.AWC_API_INVALID_RESPONSE
           );
         default:
-          return new AWCServiceError(502, `AWC API error: ${error.message}`);
+          return new AWCServiceError(
+            HTTP_STATUS.BAD_GATEWAY,
+            ERROR_MESSAGES.AWC_API_ERROR(error.message)
+          );
       }
     }
 
@@ -72,6 +85,6 @@ export class AWCService {
       return error;
     }
 
-    return new Error("AWC API error: Unknown error");
+    return new Error(ERROR_MESSAGES.AWC_API_UNKNOWN_ERROR);
   }
 }

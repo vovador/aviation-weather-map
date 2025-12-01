@@ -1,6 +1,9 @@
 import { Router, Response } from "express";
 import { generateGuestToken } from "../services/auth.service";
 import { logger } from "../utils/logger";
+import { HTTP_STATUS } from "../constants/httpStatus";
+import { ERROR_MESSAGES } from "../constants/errorMessages";
+import { AUTH } from "../constants/auth";
 
 const router = Router();
 
@@ -21,7 +24,7 @@ const router = Router();
  *       500:
  *         $ref: '#/components/responses/InternalServerErrorResponse'
  */
-router.post("/guest", (_req, res: Response) => {
+router.post(`/${AUTH.GUEST_ROUTE}`, (_req, res: Response) => {
   try {
     const token = generateGuestToken();
     logger.info("Guest token issued");
@@ -31,7 +34,9 @@ router.post("/guest", (_req, res: Response) => {
     });
   } catch (error) {
     logger.error("Error generating guest token", { error });
-    res.status(500).json({ error: "Failed to generate token" });
+    res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      error: ERROR_MESSAGES.FAILED_TO_GENERATE_TOKEN,
+    });
   }
 });
 

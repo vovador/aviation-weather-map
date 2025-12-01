@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
+import { AUTH } from "../constants/auth";
 
 export interface JWTPayload {
   iss: string;
@@ -11,8 +12,8 @@ export interface JWTPayload {
 export function generateGuestToken(): string {
   const now = Math.floor(Date.now() / 1000);
   const payload: JWTPayload = {
-    iss: "awc-proxy-backend",
-    aud: "awc-proxy-frontend",
+    iss: AUTH.JWT_ISSUER,
+    aud: AUTH.JWT_AUDIENCE,
     iat: now,
     exp: now + 15 * 60, // 15 minutes
   };

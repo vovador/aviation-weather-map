@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { ENVIRONMENT } from "../constants/environment";
 
 dotenv.config();
 
@@ -26,8 +27,8 @@ function validateEnv(): EnvConfig {
     jwtSecret: process.env.JWT_SECRET!,
     frontendOrigin: process.env.FRONTEND_ORIGIN!,
     awcBaseUrl: process.env.AWC_BASE_URL!,
-    nodeEnv: process.env.NODE_ENV || "development",
-    useMockData: process.env.USE_MOCK_DATA === "true",
+    nodeEnv: process.env.NODE_ENV || ENVIRONMENT.DEVELOPMENT,
+    useMockData: process.env.USE_MOCK_DATA === ENVIRONMENT.TRUE,
   };
 }
 

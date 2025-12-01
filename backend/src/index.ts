@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.routes";
 import sigmetRoutes from "./routes/sigmet.routes";
 import swaggerRoutes from "./routes/swagger.routes";
 import { logger } from "./utils/logger";
+import { API_ROUTES } from "./constants/apiRoutes";
 
 const app = express();
 
@@ -24,9 +25,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Swagger UI serves HTML, inline scripts, styles, and sometimes CDN assets.
 // It requires a relaxed CSP, so we scope this configuration only to the `/docs` route.
-app.use("/docs", swaggerSecurityHeaders);
+app.use(API_ROUTES.DOCS, swaggerSecurityHeaders);
 // Swagger documentation
-app.use("/docs", swaggerRoutes);
+app.use(API_ROUTES.DOCS, swaggerRoutes);
 
 // Health check
 app.get("/health", (_req, res) => {
@@ -34,7 +35,7 @@ app.get("/health", (_req, res) => {
 });
 
 // Routes
-app.use("/auth", authRoutes);
+app.use(API_ROUTES.AUTH, authRoutes);
 app.use("/", sigmetRoutes);
 
 // Error handler (must be last)

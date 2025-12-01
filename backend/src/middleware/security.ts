@@ -5,6 +5,10 @@ import rateLimit from "express-rate-limit";
 import { env } from "../config/env";
 import { logger } from "../utils/logger";
 import { AWCServiceError } from "../errors/AWCServiceError";
+import { HTTP_STATUS } from "../constants/httpStatus";
+import { ERROR_MESSAGES } from "../constants/errorMessages";
+import { ENVIRONMENT } from "../constants/environment";
+import { HTTP_METHODS } from "../constants/httpMethods";
 
 // Global security headers for all API routes (JSON only, no HTML served)
 // Only minimal protections are needed for a pure API.
@@ -42,7 +46,7 @@ export const swaggerSecurityHeaders = helmet({
 
 export const corsMiddleware = cors({
   origin: env.frontendOrigin,
-  methods: ["GET", "HEAD"],
+  methods: [HTTP_METHODS.GET, HTTP_METHODS.HEAD],
   credentials: true,
   optionsSuccessStatus: 200,
 });
@@ -54,8 +58,8 @@ export const rateLimiter = rateLimit({
   legacyHeaders: false,
   handler: (req: Request, res: Response) => {
     logger.warn("Rate limit exceeded", { ip: req.ip });
-    res.status(429).json({
-      error: "Too many requests, please try again later",
+    res.status(HTTP_STATUS.TOO_MANY_REQUESTS).json({
+      error: ERROR_MESSAGES.TOO_MANY_REQUESTS,
     });
   },
 });
@@ -96,11 +100,14 @@ export function errorHandler(
   // Handle all other unknown errors
   logger.error("Unhandled error", {
     message: err.message,
-    stack: env.nodeEnv === "development" ? err.stack : undefined,
+    stack: env.nodeEnv === ENVIRONMENT.DEVELOPMENT ? err.stack : undefined,
     path: req.path,
   });
 
-  res.status(500).json({
-    error: env.nodeEnv === "production" ? "Internal server error" : err.message,
+  res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+    error:
+      env.nodeEnv === ENVIRONMENT.PRODUCTION
+        ? ERROR_MESSAGES.INTERNAL_SERVER_ERROR
+        : err.message,
   });
 }

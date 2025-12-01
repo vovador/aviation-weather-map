@@ -1,7 +1,8 @@
 import { env } from "../config/env";
 import pino from "pino";
+import { ENVIRONMENT } from "../constants/environment";
 
-const isDev = env.nodeEnv === "development";
+const isDev = env.nodeEnv === ENVIRONMENT.DEVELOPMENT;
 
 const baseLogger = pino({
   level: isDev ? "debug" : "info",

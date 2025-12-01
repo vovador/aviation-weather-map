@@ -1,12 +1,11 @@
 import axios, { AxiosInstance } from "axios";
 import { logger } from "../utils/logger";
-
-type ApiClientErrorCode =
-  | "TIMEOUT"
-  | "NETWORK"
-  | "NON_200"
-  | "INVALID"
-  | "UNKNOWN";
+import {
+  API_ERROR_CODES,
+  ApiClientErrorCode,
+} from "../constants/apiErrorCodes";
+import { ERROR_MESSAGES } from "../constants/errorMessages";
+import { AXIOS_ERROR_CODES } from "../constants/axiosErrors";
 
 export class ApiClientError extends Error {
   constructor(
@@ -55,8 +54,8 @@ export class ApiClient {
 
       if (response.status < 200 || response.status >= 300) {
         throw new ApiClientError(
-          "NON_200",
-          `Remote API responded with ${response.status}`,
+          API_ERROR_CODES.NON_200,
+          ERROR_MESSAGES.REMOTE_API_RESPONDED_WITH(response.status),
           response.status
         );
       }
@@ -77,8 +76,8 @@ export class ApiClient {
           responseData: response.data,
         });
         throw new ApiClientError(
-          "INVALID",
-          "Remote API returned an invalid response structure"
+          API_ERROR_CODES.INVALID,
+          ERROR_MESSAGES.INVALID_RESPONSE_STRUCTURE
         );
       }
 
@@ -99,32 +98,44 @@ export class ApiClient {
     }
 
     if (!axios.isAxiosError(error)) {
-      return new ApiClientError("UNKNOWN", "Unexpected error occurred");
+      return new ApiClientError(
+        API_ERROR_CODES.UNKNOWN,
+        ERROR_MESSAGES.UNEXPECTED_ERROR_OCCURRED
+      );
     }
 
     // Timeout
-    if (error.code === "ECONNABORTED") {
-      return new ApiClientError("TIMEOUT", "Request timed out");
+    if (error.code === AXIOS_ERROR_CODES.CONNECTION_ABORTED) {
+      return new ApiClientError(
+        API_ERROR_CODES.TIMEOUT,
+        ERROR_MESSAGES.REQUEST_TIMED_OUT
+      );
     }
 
     // Network failures (DNS, refused connections, etc.)
-    if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
-      return new ApiClientError("NETWORK", "Failed to connect to remote API");
+    if (
+      error.code === AXIOS_ERROR_CODES.NOT_FOUND ||
+      error.code === AXIOS_ERROR_CODES.CONNECTION_REFUSED
+    ) {
+      return new ApiClientError(
+        API_ERROR_CODES.NETWORK,
+        ERROR_MESSAGES.FAILED_TO_CONNECT_TO_REMOTE_API
+      );
     }
 
     // API returned non-2xx but <500 (allowed by validateStatus)
     if (error.response) {
       return new ApiClientError(
-        "NON_200",
-        `Remote API responded with ${error.response.status}`,
+        API_ERROR_CODES.NON_200,
+        ERROR_MESSAGES.REMOTE_API_RESPONDED_WITH(error.response.status),
         error.response.status
       );
     }
 
     // Fallback
     return new ApiClientError(
-      "UNKNOWN",
-      error.message ?? "Unknown axios error"
+      API_ERROR_CODES.UNKNOWN,
+      error.message ?? ERROR_MESSAGES.UNKNOWN_AXIOS_ERROR
     );
   }
 }

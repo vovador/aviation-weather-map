@@ -25,7 +25,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       localStorage.removeItem(STORAGE_KEYS.JWT);
     },
-    unauthorized: (state) => {
+    unauthorized: (_state) => {
       // This action is dispatched by axios interceptor on 401 errors
       // The actual logout and redirect logic is handled by middleware
       // No state changes needed here, just a marker action

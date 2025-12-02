@@ -34,7 +34,7 @@ COPY --from=builder /app/dist ./dist
 # Switch to non-root user (pre-built in node image)
 USER node
 
-EXPOSE 4000
+EXPOSE 8080
 
 CMD ["node", "dist/index.js"]
 

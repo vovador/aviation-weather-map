@@ -23,7 +23,7 @@ function validateEnv(): EnvConfig {
   }
 
   return {
-    port: parseInt(process.env.PORT || "4000", 10),
+    port: parseInt(process.env.PORT || "8080", 10),
     jwtSecret: process.env.JWT_SECRET!,
     frontendOrigin: process.env.FRONTEND_ORIGIN!,
     awcBaseUrl: process.env.AWC_BASE_URL!,

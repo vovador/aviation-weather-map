@@ -2,10 +2,11 @@ name: Deploy Backend to Cloud Run
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
     paths:
-      - "backend/**"
-      - ".github/workflows/deploy-backend.yaml"
+      - backend/**
+      - .github/workflows/deploy-backend.yaml
 
 jobs:
   deploy:

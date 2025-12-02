@@ -1,0 +1,52 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Authenticate to Google Cloud
+      - id: "auth"
+        name: "Authenticate to Google Cloud"
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Setup gcloud CLI
+      - name: "Set up Cloud SDK"
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          install_components: ["gcloud"]
+
+      # Configure Docker to use the Google Artifact Registry
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
+
+      # Build and push Docker image to Artifact Registry
+      - name: Build and Push Docker image
+        run: |
+          IMAGE="europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/awc-api/awc-api:${{ github.sha }}"
+          docker build -t $IMAGE .
+          docker push $IMAGE
+        env:
+          DOCKER_BUILDKIT: 1
+
+      # Deploy to Cloud Run
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy awc-api \
+            --image "europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/awc-api/awc-api:${{ github.sha }}" \
+            --region europe-west1 \
+            --allow-unauthenticated \
+            --platform managed \
+            --max-instances=1

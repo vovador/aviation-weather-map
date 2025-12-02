@@ -9,6 +9,7 @@ import {
 import authRoutes from "./routes/auth.routes";
 import sigmetRoutes from "./routes/sigmet.routes";
 import swaggerRoutes from "./routes/swagger.routes";
+import healthRoutes from "./routes/health.routes";
 import { logger } from "./utils/logger";
 import { API_ROUTES } from "./constants/apiRoutes";
 
@@ -30,9 +31,7 @@ app.use(API_ROUTES.DOCS, swaggerSecurityHeaders);
 app.use(API_ROUTES.DOCS, swaggerRoutes);
 
 // Health check
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
-});
+app.use("/", healthRoutes);
 
 // Routes
 app.use(API_ROUTES.AUTH, authRoutes);

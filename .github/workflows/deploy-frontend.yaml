@@ -27,6 +27,7 @@ jobs:
       - name: Build and Push Frontend Docker image
         working-directory: frontend
         run: |
+          echo "VITE_API_URL=${{ secrets.BACKEND_URL }}" > .env.production
           IMAGE="europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/awc-frontend/awc-frontend:${{ github.sha }}"
           docker build -t $IMAGE .
           docker push $IMAGE

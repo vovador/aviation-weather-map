@@ -1,3 +1,5 @@
+import { logger } from "@/utils/logger";
+
 export function logResponse(
   method: string,
   url: string,
@@ -18,7 +20,7 @@ export function logResponse(
       ? data.features.length
       : undefined;
 
-  console.log(`[RTK] ✓ ${method} ${url} (${duration}ms)`, {
+  logger.debug(`[RTK] ✓ ${method} ${url} (${duration}ms)`, {
     keys: data ? Object.keys(data) : [],
     features: featureCount,
   });

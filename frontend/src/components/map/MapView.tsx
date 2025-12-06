@@ -15,6 +15,7 @@ interface MapViewProps {
   showAirsigmet: boolean
   minAltitude: number
   maxAltitude: number
+  timeOffsetHours: number
 }
 
 export const MapView: React.FC<MapViewProps> = ({
@@ -24,6 +25,7 @@ export const MapView: React.FC<MapViewProps> = ({
   showAirsigmet,
   minAltitude,
   maxAltitude,
+  timeOffsetHours,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useInitMap(mapContainer)
@@ -39,6 +41,7 @@ export const MapView: React.FC<MapViewProps> = ({
     showAirsigmet,
     minAltitude,
     maxAltitude,
+    timeOffsetHours,
   })
 
   // Handle polygon clicks
